@@ -1,0 +1,10 @@
+,file,time(s)
+small grid,grid-6-7,0.00734710693359375
+medium grid,grid-25-40,4.939554691314697
+large grid,grid-100-180,-1
+small random,rand-5-7,0.0023059844970703125
+medium random,rand-25-50,0.3517780303955078
+large random,rand-80-350,-1
+small tree,tree-5-4,0.002279043197631836
+medium tree,tree-25-24,30.575560808181763
+large tree,tree-100-99,-1

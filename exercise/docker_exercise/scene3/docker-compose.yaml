@@ -1,0 +1,13 @@
+services:
+  db:
+    image: mariadb:latest
+    container_name: ex-app-db
+    environment:
+      - MARIADB_ROOT_PASSWORD=exroot
+  my_admin:
+    links:
+      - db
+    image: adminer
+    container_name: ex-app-myadmin
+    ports:
+      - 8000:8080
