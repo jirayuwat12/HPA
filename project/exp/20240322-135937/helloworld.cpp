@@ -14,9 +14,8 @@ int v, e;
 bool check_cover(const int64_t &comb){
     for(int i = 0; i < v; i++){
         bool connected = false;
-        int num = G[i].size();
-        for (int j = 0; j < num; j++){
-            if(comb & (1<<G[i][j])){
+        for (int j = 0; j < v; j++){
+            if(G[i][j] == 1 && (comb & (1<<j))){
                 connected = true;
                 break;
             }
@@ -30,13 +29,22 @@ bool check_cover(const int64_t &comb_second, const int64_t &comb_first){
     for(int i = 0; i < v; i++){
         bool connected = false;
 
-        int num = G[i].size();
-        for (int j = 0; j < num; j++){
-            if((G[i][j] < 64 && comb_first & (1<<G[i][j])) || (G[i][j] >= 64 && comb_second & (1<<(G[i][j]-64)))){
+        // TODO: loop unrolling
+        for (int j = 0; j < 64; j++){
+            if((G[i][j] == 1) & (comb_first & (1<<j))){
                 connected = true;
                 break;
             }
         }
+        if (connected) continue;
+
+        for (int j = 65; j < v; j++){
+            if((G[i][j] == 1) & comb_second & (1<<(j-64))){
+                connected = true;
+                break;
+            }
+        }
+        if(!connected) return false;
     }
     return true;
 }
@@ -51,13 +59,13 @@ int main(int argc, char **argv){
     scanf("%d", &v);
     scanf("%d", &e);
 
-    // collect only connected vertices
-    G.resize(v);
+    G.resize(v, vector<int>(v, 0));
+
     for(int i = 0; i < e; i++){
         int a, b;
         scanf("%d %d", &a, &b);
-        G[a].emplace_back(b);
-        G[b].emplace_back(a);
+        G[a][b] = 1;
+        G[b][a] = 1;
     }
 
     if (e==0){

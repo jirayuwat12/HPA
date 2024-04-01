@@ -7,16 +7,16 @@
 
 using namespace std;
 
-// TODO: use bitset
 vector<vector<int> > G;
 int v, e;
 
 bool check_cover(const int64_t &comb){
+    int ans = 0;
+
     for(int i = 0; i < v; i++){
         bool connected = false;
-        int num = G[i].size();
-        for (int j = 0; j < num; j++){
-            if(comb & (1<<G[i][j])){
+        for (int j = 0; j < v; j++){
+            if(G[i][j] == 1 && (comb & (1<<j))){
                 connected = true;
                 break;
             }
@@ -25,18 +25,27 @@ bool check_cover(const int64_t &comb){
     }
     return true;
 }
-
 bool check_cover(const int64_t &comb_second, const int64_t &comb_first){
     for(int i = 0; i < v; i++){
         bool connected = false;
 
-        int num = G[i].size();
-        for (int j = 0; j < num; j++){
-            if((G[i][j] < 64 && comb_first & (1<<G[i][j])) || (G[i][j] >= 64 && comb_second & (1<<(G[i][j]-64)))){
+        for (int j = 0; j < 64; j++){
+            bool first_condition = (comb_first & (1<<j));
+            if((G[i][j] == 1) & (first_condition)){
                 connected = true;
                 break;
             }
         }
+        if(!connected) return false;
+
+        for (int j = 65; j < v; j++){
+            bool second_condition = (comb_second & (1<<(j-64)));
+            if((G[i][j] == 1) & (second_condition)){
+                connected = true;
+                break;
+            }
+        }
+        if(!connected) return false;
     }
     return true;
 }
@@ -51,13 +60,13 @@ int main(int argc, char **argv){
     scanf("%d", &v);
     scanf("%d", &e);
 
-    // collect only connected vertices
-    G.resize(v);
+    G.resize(v, vector<int>(v, 0));
+
     for(int i = 0; i < e; i++){
         int a, b;
         scanf("%d %d", &a, &b);
-        G[a].emplace_back(b);
-        G[b].emplace_back(a);
+        G[a][b] = 1;
+        G[b][a] = 1;
     }
 
     if (e==0){
@@ -77,13 +86,13 @@ int main(int argc, char **argv){
         int64_t min_comb = 0;
         #pragma omp parallel for schedule(guided)
         for(int64_t comb = 1; comb < (1<<v); comb++){
-            int count = 0;
-            for(int i = 0; i < v; i++){
-                if(comb & (1<<i)){
-                    count++;
-                }
-            }
             if(check_cover(comb)){
+                int count = 0;
+                for(int i = 0; i < v; i++){
+                    if(comb & (1<<i)){
+                        count++;
+                    }
+                }
                 #pragma omp critical
                 {
                     if(count < min_cover){
@@ -112,14 +121,13 @@ int main(int argc, char **argv){
             int min_cover = 1000000;
             vector<int> min_comb;
             for(int64_t comb_first = 0; comb_first <= INT64_MAX; comb_first++){
-                int count = 0;
-                for(int i = 0; i < v; i++){
-                    if((i < 64 && comb_first & (1<<i)) || (i >= 64 && comb_second & (1<<(i-64)))){
-                        count++;
-                    }
-                }
-                if(count >= min_cover) continue;
                 if(check_cover(comb_second, comb_first)){
+                    int count = 0;
+                    for(int i = 0; i < v; i++){
+                        if((i < 64 && comb_first & (1<<i)) || (i >= 64 && comb_second & (1<<(i-64)))){
+                            count++;
+                        }
+                    }
                     if(count < min_cover){
                         min_cover = count;
                         min_comb = vector<int>(v, 0);
